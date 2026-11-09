@@ -123,6 +123,6 @@ export interface ByokOptions {
   providers?: Record<string, ProviderConfig>;
   /** Path to project config file */
   configPath?: string;
-  /** Disable user config loading */
+  /** Do not read the user config file (stored keys are still used) */
   noUserConfig?: boolean;
 }

@@ -23,7 +23,7 @@ let cachedOptions: ByokOptions | null = null;
  * Initialize / reset the config cache. Call this if you change options at runtime.
  */
 export function initConfig(options?: ByokOptions): ByokConfig {
-  const { config } = loadConfig(options?.configPath);
+  const { config } = loadConfig(options?.configPath, { noUserConfig: options?.noUserConfig });
 
   // Merge runtime provider overrides
   if (options?.providers) {

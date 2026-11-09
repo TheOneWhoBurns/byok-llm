@@ -136,13 +136,18 @@ export interface LoadedConfig {
 /**
  * Load and merge all config layers.
  * Priority: custom path > project config > user config
+ *
+ * With `noUserConfig`, the user config file is not read.
  */
-export function loadConfig(customPath?: string): LoadedConfig {
+export function loadConfig(
+  customPath?: string,
+  options: { noUserConfig?: boolean } = {},
+): LoadedConfig {
   let config: ByokConfig = {};
   const sources: string[] = [];
 
   // Layer 1: User config (lowest priority)
-  const userConfig = readJsonConfig(getUserConfigPath());
+  const userConfig = options.noUserConfig ? null : readJsonConfig(getUserConfigPath());
   if (userConfig) {
     config = mergeConfigs(config, userConfig);
     sources.push("user-config");

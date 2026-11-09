@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   initConfig,
@@ -9,6 +9,8 @@ import {
   getConfiguredProviders,
   getConfig,
 } from "../src/config/resolver.js";
+import { getUserConfigPath } from "../src/config/loader.js";
+import { storeKey, removeKey } from "../src/storage/file.js";
 
 describe("Key Resolver", () => {
   const originalEnv = { ...process.env };
@@ -197,6 +199,59 @@ describe("Key Resolver", () => {
       initConfig({});
       const configured = await getConfiguredProviders();
       expect(configured.length).toBe(0);
+    });
+  });
+
+  describe("noUserConfig", () => {
+    function writeUserConfig() {
+      const userConfigPath = getUserConfigPath();
+      mkdirSync(dirname(userConfigPath), { recursive: true });
+      writeFileSync(
+        userConfigPath,
+        JSON.stringify({
+          defaultProvider: "mistral",
+          providers: { mistral: { apiKey: "mistral-key-from-user-config" } },
+        }),
+      );
+      return userConfigPath;
+    }
+
+    afterEach(() => {
+      rmSync(getUserConfigPath(), { force: true });
+    });
+
+    it("should read the user config by default", async () => {
+      writeUserConfig();
+
+      const config = initConfig({});
+
+      expect(config.defaultProvider).toBe("mistral");
+      expect((await resolveKey("mistral"))?.key).toBe("mistral-key-from-user-config");
+    });
+
+    // Regression: the option was declared in ByokOptions but never read.
+    it("should skip the user config when noUserConfig is set", async () => {
+      writeUserConfig();
+
+      const config = initConfig({ noUserConfig: true });
+
+      expect(config).toEqual({});
+      expect(await resolveKey("mistral")).toBeNull();
+    });
+
+    it("should still read project config and stored keys", async () => {
+      writeUserConfig();
+      writeFileSync(
+        join(testDir, ".byokrc.json"),
+        JSON.stringify({ providers: { groq: { apiKey: "gsk_from-project-config-12" } } }),
+      );
+      await storeKey("xai", "xai-stored-key-1234567890");
+
+      initConfig({ noUserConfig: true });
+
+      expect((await resolveKey("groq"))?.key).toBe("gsk_from-project-config-12");
+      expect((await resolveKey("xai"))?.key).toBe("xai-stored-key-1234567890");
+      await removeKey("xai");
     });
   });
 
