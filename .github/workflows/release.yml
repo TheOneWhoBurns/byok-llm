@@ -1,0 +1,36 @@
+name: Release
+
+# Publishes to npm when a GitHub release is published.
+#
+# This workflow is dormant. It does nothing until BOTH of these are done:
+#   1. byok-llm has this file (release.yml in TheOneWhoBurns/byok-llm) set up as
+#      a trusted publisher on npmjs.com, and
+#   2. the repository variable NPM_PUBLISH_ENABLED is set to "true".
+# It has not been run yet. See RELEASING.md.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: vars.NPM_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC token for npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm ci
+      - name: Refuse to publish if the tag and package.json disagree
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      # prepublishOnly runs lint, typecheck, tests and the build first.
+      - run: npm publish --access public
