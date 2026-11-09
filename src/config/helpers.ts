@@ -90,9 +90,26 @@ export function getProviderBaseUrl(providerId: ProviderId): string {
 }
 
 /**
+ * Turn a provider's API root into the base URL the OpenAI SDK expects.
+ *
+ * The SDK requests `${baseURL}/chat/completions`, so the version segment has to
+ * be part of the base URL (its own default is "https://api.openai.com/v1").
+ * A URL that already ends in a version segment such as "/v1" is left alone.
+ */
+function toOpenAIBaseUrl(apiRoot: string): string {
+  const trimmed = apiRoot.replace(/\/+$/, "");
+  if (/\/v\d+[a-z0-9]*$/i.test(trimmed)) return apiRoot;
+  return `${trimmed}/v1`;
+}
+
+/**
  * Get a config object compatible with the OpenAI SDK.
  * Works for: openai, openrouter, groq, xai, mistral, deepseek, and any
  * other provider marked as openaiCompatible.
+ *
+ * For those providers `baseURL` is the provider's base URL plus "/v1", ready to
+ * pass to `new OpenAI(...)`. A `baseUrl` set in config is returned exactly as
+ * written, so an override must include whatever path the SDK should call.
  */
 export async function getOpenAICompatibleConfig(
   providerId: ProviderId,
@@ -113,7 +130,10 @@ export async function getOpenAICompatibleConfig(
 
   const result: OpenAICompatibleConfig = {
     apiKey: resolved.key,
-    baseURL: getEffectiveBaseUrl(providerId, providerConfig),
+    baseURL:
+      providerConfig?.baseUrl || !provider.openaiCompatible
+        ? getEffectiveBaseUrl(providerId, providerConfig)
+        : toOpenAIBaseUrl(provider.baseUrl),
   };
 
   // Merge default + custom headers

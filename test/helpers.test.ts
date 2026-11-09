@@ -5,7 +5,7 @@ import {
   getOpenAICompatibleConfig,
 } from "../src/config/helpers.js";
 import { buildAuthHeaders, buildUrl } from "../src/config/helpers.js";
-import { getProvider } from "../src/providers/registry.js";
+import { getProvider, registerProvider } from "../src/providers/registry.js";
 import { initConfig } from "../src/config/resolver.js";
 
 describe("Auth & URL Helpers", () => {
@@ -195,7 +195,7 @@ describe("Auth & URL Helpers", () => {
 
       const config = await getOpenAICompatibleConfig("openrouter");
       expect(config.apiKey).toBe("sk-or-compat-test-123456");
-      expect(config.baseURL).toBe("https://openrouter.ai/api");
+      expect(config.baseURL).toBe("https://openrouter.ai/api/v1");
     });
 
     it("should return OpenAI-compatible config for Groq", async () => {
@@ -203,7 +203,89 @@ describe("Auth & URL Helpers", () => {
 
       const config = await getOpenAICompatibleConfig("groq");
       expect(config.apiKey).toBe("gsk_compat-test-key-1234567");
-      expect(config.baseURL).toBe("https://api.groq.com/openai");
+      expect(config.baseURL).toBe("https://api.groq.com/openai/v1");
+    });
+
+    // Regression: the OpenAI SDK requests `${baseURL}/chat/completions`, so the
+    // baseURL must already include the version path. 1.0.0 returned the bare API
+    // root, which 404s for every provider below except DeepSeek.
+    it("should return a baseURL the OpenAI SDK can append paths to", async () => {
+      const chatCompletionsUrls: Record<string, string> = {
+        openai: "https://api.openai.com/v1/chat/completions",
+        openrouter: "https://openrouter.ai/api/v1/chat/completions",
+        groq: "https://api.groq.com/openai/v1/chat/completions",
+        xai: "https://api.x.ai/v1/chat/completions",
+        mistral: "https://api.mistral.ai/v1/chat/completions",
+        deepseek: "https://api.deepseek.com/v1/chat/completions",
+      };
+
+      for (const [id, url] of Object.entries(chatCompletionsUrls)) {
+        const provider = getProvider(id)!;
+        process.env[provider.envKeys[0]] = "compat-test-key-1234567890";
+
+        const config = await getOpenAICompatibleConfig(id);
+        expect(`${config.baseURL}/chat/completions`).toBe(url);
+      }
+    });
+
+    it("should leave getProviderBaseUrl as the API root for raw requests", async () => {
+      process.env.GROQ_API_KEY = "gsk_compat-test-key-1234567";
+
+      await getOpenAICompatibleConfig("groq");
+      expect(getProviderBaseUrl("groq")).toBe("https://api.groq.com/openai");
+      expect(getProviderBaseUrl("openai")).toBe("https://api.openai.com");
+    });
+
+    it("should append /v1 for a custom OpenAI-compatible provider", async () => {
+      registerProvider({
+        id: "compat-local",
+        name: "Local server",
+        envKeys: ["COMPAT_LOCAL_KEY"],
+        baseUrl: "http://localhost:11434/",
+        docsUrl: "https://example.com",
+        authStyle: "bearer",
+        openaiCompatible: true,
+      });
+      process.env.COMPAT_LOCAL_KEY = "local-key-1234567890";
+
+      const config = await getOpenAICompatibleConfig("compat-local");
+      expect(config.baseURL).toBe("http://localhost:11434/v1");
+    });
+
+    it("should not append /v1 when the provider baseUrl is already versioned", async () => {
+      registerProvider({
+        id: "compat-versioned",
+        name: "Versioned gateway",
+        envKeys: ["COMPAT_VERSIONED_KEY"],
+        baseUrl: "https://gateway.example.com/openai/v2",
+        docsUrl: "https://example.com",
+        authStyle: "bearer",
+        openaiCompatible: true,
+      });
+      process.env.COMPAT_VERSIONED_KEY = "versioned-key-1234567890";
+
+      const config = await getOpenAICompatibleConfig("compat-versioned");
+      expect(config.baseURL).toBe("https://gateway.example.com/openai/v2");
+    });
+
+    it("should not rewrite the baseURL of providers not marked openaiCompatible", async () => {
+      process.env.ANTHROPIC_API_KEY = "sk-ant-compat-test-12345";
+
+      const config = await getOpenAICompatibleConfig("anthropic");
+      expect(config.baseURL).toBe("https://api.anthropic.com");
+    });
+
+    it("should pass a baseUrl override without a version through unchanged", async () => {
+      process.env.OPENAI_API_KEY = "sk-baseurl-override-12345";
+
+      initConfig({
+        providers: {
+          openai: { baseUrl: "https://gateway.example.com/account/openai" },
+        },
+      });
+
+      const config = await getOpenAICompatibleConfig("openai");
+      expect(config.baseURL).toBe("https://gateway.example.com/account/openai");
     });
 
     it("should include default headers for Anthropic", async () => {
