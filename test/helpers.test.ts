@@ -7,6 +7,16 @@ import {
 import { buildAuthHeaders, buildUrl } from "../src/config/helpers.js";
 import { getProvider, registerProvider } from "../src/providers/registry.js";
 import { initConfig } from "../src/config/resolver.js";
+import type { ProviderDefinition } from "../src/types.js";
+
+const queryParamProvider: ProviderDefinition = {
+  id: "query-param-provider",
+  name: "Query-param provider",
+  envKeys: ["QUERY_PARAM_PROVIDER_KEY"],
+  baseUrl: "https://query.example.com",
+  docsUrl: "https://example.com/docs",
+  authStyle: "query-param",
+};
 
 describe("Auth & URL Helpers", () => {
   const originalEnv = { ...process.env };
@@ -51,12 +61,17 @@ describe("Auth & URL Helpers", () => {
       expect(headers["Authorization"]).toBe("Bearer gsk_test-key-1234567890");
     });
 
-    it("should not set auth headers for query-param style (Google)", () => {
+    it("should send Google keys in the x-goog-api-key header", () => {
       const provider = getProvider("google")!;
       const headers = buildAuthHeaders(provider, "AIzaSyC-test-key-123");
 
-      expect(headers["Authorization"]).toBeUndefined();
-      expect(headers["x-api-key"]).toBeUndefined();
+      expect(headers).toEqual({ "x-goog-api-key": "AIzaSyC-test-key-123" });
+    });
+
+    it("should not set auth headers for query-param style", () => {
+      const headers = buildAuthHeaders(queryParamProvider, "query-key-1234567890");
+
+      expect(headers).toEqual({});
     });
 
     it("should merge custom headers from config", () => {
@@ -82,12 +97,18 @@ describe("Auth & URL Helpers", () => {
       expect(url).toBe("https://api.openai.com/v1/models");
     });
 
-    it("should append key as query param for Google", () => {
+    it("should append the key as a query parameter for query-param providers", () => {
+      const url = buildUrl(queryParamProvider, "/v1/models", "query key/1+2");
+
+      expect(url).toBe("https://query.example.com/v1/models?key=query+key%2F1%2B2");
+    });
+
+    // Regression: a key in the URL ends up in proxy and server logs.
+    it("should keep Google keys out of the URL", () => {
       const provider = getProvider("google")!;
       const url = buildUrl(provider, "/v1beta/models", "AIzaSyC-test-key");
 
-      expect(url).toContain("key=AIzaSyC-test-key");
-      expect(url).toContain("generativelanguage.googleapis.com");
+      expect(url).toBe("https://generativelanguage.googleapis.com/v1beta/models");
     });
 
     it("should use custom baseUrl from config", () => {

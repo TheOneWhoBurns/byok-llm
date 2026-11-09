@@ -55,14 +55,16 @@ describe("validateKey (live check, fetch stubbed)", () => {
     expect(headers["Authorization"]).toBe("Bearer gsk_valid-looking-key-123456");
   });
 
-  it("should send Google keys as a query parameter", async () => {
+  it("should send Google keys in a header, not in the URL", async () => {
     const fetchMock = stubFetch(jsonResponse(200));
 
     await validateKey("google", "AIzaSyC-valid-looking-key");
 
     expect(String(fetchMock.mock.calls[0][0])).toBe(
-      "https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyC-valid-looking-key",
+      "https://generativelanguage.googleapis.com/v1beta/models",
     );
+    const headers = fetchMock.mock.calls[0][1]!.headers as Record<string, string>;
+    expect(headers["x-goog-api-key"]).toBe("AIzaSyC-valid-looking-key");
   });
 
   it("should report 401 as an invalid key", async () => {
