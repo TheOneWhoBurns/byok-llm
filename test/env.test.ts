@@ -101,7 +101,7 @@ describe("Environment Variable Helpers", () => {
 
     it("should include docs URLs as comments", () => {
       const template = generateEnvTemplate(["anthropic"]);
-      expect(template).toContain("console.anthropic.com");
+      expect(template).toContain("platform.claude.com/settings/keys");
     });
 
     it("should include header comment", () => {

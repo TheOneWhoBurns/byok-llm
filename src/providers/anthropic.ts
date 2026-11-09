@@ -6,7 +6,7 @@ export const anthropic: ProviderDefinition = {
   envKeys: ["ANTHROPIC_API_KEY"],
   keyPrefix: "sk-ant-",
   baseUrl: "https://api.anthropic.com",
-  docsUrl: "https://console.anthropic.com/settings/keys",
+  docsUrl: "https://platform.claude.com/settings/keys",
   authStyle: "x-api-key",
   authHeader: "x-api-key",
   defaultHeaders: {
