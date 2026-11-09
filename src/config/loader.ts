@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Config File Loader
+// byok-llm — Config File Loader
 // ============================================================
 
 import { readFileSync, existsSync } from "node:fs";

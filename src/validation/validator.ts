@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Key Validation
+// byok-llm — Key Validation
 // ============================================================
 
 import type { ProviderId, ValidationResult } from "../types.js";

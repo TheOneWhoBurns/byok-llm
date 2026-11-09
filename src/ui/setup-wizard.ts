@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Interactive Setup Wizard
+// byok-llm — Interactive Setup Wizard
 // ============================================================
 // Uses raw Node.js readline — zero dependencies.
 

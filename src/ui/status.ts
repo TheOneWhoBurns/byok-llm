@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Status Reporter
+// byok-llm — Status Reporter
 // ============================================================
 
 import type { ProviderId, ProviderStatus, StatusReport } from "../types.js";

@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Basic Usage Examples
+// byok-llm — Basic Usage Examples
 // ============================================================
 // Run: npx tsx examples/basic-usage.ts
 

@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Types
+// byok-llm — Types
 // ============================================================
 
 /** Supported built-in provider IDs */
@@ -81,7 +81,7 @@ export interface ProviderConfig {
   headers?: Record<string, string>;
 }
 
-/** Full byok-ai config file shape */
+/** Full byok-llm config file shape */
 export interface ByokConfig {
   providers?: Record<string, ProviderConfig>;
   defaultProvider?: ProviderId;

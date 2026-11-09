@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Environment Variable Helpers
+// byok-llm — Environment Variable Helpers
 // ============================================================
 
 import type { ProviderId } from "../types.js";

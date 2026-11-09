@@ -1,12 +1,12 @@
 // ============================================================
-// byok-ai — Bring Your Own Key for AI-Powered Apps
+// byok-llm — Bring Your Own Key for AI-Powered Apps
 // ============================================================
 //
 // A lightweight, zero-dependency module for managing API keys
 // across multiple AI providers. Built for CLI tools and agentic apps.
 //
 // Usage:
-//   import { resolveKey, setupWizard } from 'byok-ai';
+//   import { resolveKey, setupWizard } from 'byok-llm';
 //
 //   // First run: walk the user through key setup
 //   await setupWizard({ providers: ['anthropic', 'openrouter'], appName: 'my-app' });
@@ -88,7 +88,7 @@ import { setupWizard } from "./ui/setup-wizard.js";
  *
  * @example
  * ```typescript
- * import { init } from 'byok-ai';
+ * import { init } from 'byok-llm';
  *
  * const provider = await init({
  *   providers: ['anthropic', 'openai', 'openrouter'],
