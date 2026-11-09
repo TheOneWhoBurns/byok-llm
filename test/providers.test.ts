@@ -35,7 +35,7 @@ describe("Provider Registry", () => {
         id: "google",
         name: "Google Gemini",
         envKeys: ["GEMINI_API_KEY", "GOOGLE_API_KEY"],
-        authStyle: "query-param",
+        authStyle: "x-api-key",
         openaiCompatible: false,
       },
       {

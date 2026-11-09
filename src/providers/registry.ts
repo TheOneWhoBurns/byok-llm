@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Provider Registry
+// byok-llm — Provider Registry
 // ============================================================
 
 import type { ProviderDefinition, ProviderId } from "../types.js";

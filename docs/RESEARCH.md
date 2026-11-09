@@ -1,5 +1,9 @@
 # BYOK Module - Research Notes
 
+> **Historical note.** Prior-art survey from March 2026, written before
+> implementation and not updated since. Project details below (stars, licenses,
+> package lists) were not re-verified.
+
 ## The Gap
 
 **No standalone npm package exists** that provides unified BYOK key management for multiple AI providers.

@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Key Resolution Engine
+// byok-llm — Key Resolution Engine
 // ============================================================
 
 import type {
@@ -23,7 +23,7 @@ let cachedOptions: ByokOptions | null = null;
  * Initialize / reset the config cache. Call this if you change options at runtime.
  */
 export function initConfig(options?: ByokOptions): ByokConfig {
-  const { config } = loadConfig(options?.configPath);
+  const { config } = loadConfig(options?.configPath, { noUserConfig: options?.noUserConfig });
 
   // Merge runtime provider overrides
   if (options?.providers) {
@@ -51,12 +51,15 @@ export function getConfig(): ByokConfig {
 /**
  * Resolve an API key for a provider, checking all layers.
  *
- * Resolution order:
- * 1. Runtime options (passed via init or resolveKey options)
- * 2. Environment variables
- * 3. Project config file
- * 4. User config file
- * 5. Stored keys (~/.config/byok-ai/keys.json)
+ * Resolution order (first match wins):
+ * 1. The `runtimeKey` argument
+ * 2. `apiKey` from the merged config: options passed to init()/initConfig(),
+ *    then a custom config path, then project config, then user config.
+ *    Reported with source "runtime" whichever layer it came from.
+ * 3. Environment variables
+ * 4. Stored keys (~/.config/byok-ai/keys.json), reported as "user-config"
+ *
+ * Returns null for unknown or disabled providers.
  */
 export async function resolveKey(
   providerId: ProviderId,

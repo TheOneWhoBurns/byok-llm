@@ -1,5 +1,11 @@
 # BYOK Module — Implementation Plan
 
+> **Historical note.** This is the plan written before the first line of code, kept
+> for context. It uses the working name `byok-ai` (the package was published as
+> `byok-llm`) and describes things that were never built: `custom.ts`,
+> `schema.ts`/zod validation and OS keychain storage do not exist. The
+> [README](../README.md) describes what the library actually does.
+
 ## Package Name: `byok-ai`
 
 > A lightweight, zero-dependency BYOK (Bring Your Own Key) module for AI-powered apps.

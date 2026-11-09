@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Key Validation
+// byok-llm — Key Validation
 // ============================================================
 
 import type { ProviderId, ValidationResult } from "../types.js";
@@ -39,6 +39,32 @@ export function validateKeyFormat(providerId: ProviderId, key: string): Validati
   }
 
   return { valid: true };
+}
+
+const networkErrorCodes = new Set([
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+
+function hasNetworkErrorCode(error: unknown, depth = 2): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  if ("code" in error && typeof error.code === "string" && networkErrorCodes.has(error.code)) {
+    return true;
+  }
+  if (depth === 0) return false;
+  if ("cause" in error && hasNetworkErrorCode(error.cause, depth - 1)) return true;
+  return (
+    "errors" in error &&
+    Array.isArray(error.errors) &&
+    error.errors.some((nested: unknown) => hasNetworkErrorCode(nested, depth - 1))
+  );
 }
 
 /**
@@ -112,7 +138,12 @@ export async function validateKey(providerId: ProviderId, key: string): Promise<
     const message = err instanceof Error ? err.message : "Unknown error";
 
     // Timeout or network error — don't assume key is invalid
-    if (message.includes("timeout") || message.includes("ENOTFOUND")) {
+    if (
+      (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) ||
+      hasNetworkErrorCode(err) ||
+      message.includes("timeout") ||
+      message.includes("ENOTFOUND")
+    ) {
       return {
         valid: true,
         meta: { warning: "Could not reach provider API to validate (network issue)" },

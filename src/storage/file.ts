@@ -1,5 +1,5 @@
 // ============================================================
-// byok-ai — Secure File Storage
+// byok-llm — Secure File Storage
 // ============================================================
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";

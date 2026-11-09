@@ -1,17 +1,10 @@
 // ============================================================
-// byok-ai — Types
+// byok-llm — Types
 // ============================================================
 
 /** Supported built-in provider IDs */
 export type BuiltinProviderId =
-  | "anthropic"
-  | "openai"
-  | "openrouter"
-  | "google"
-  | "groq"
-  | "xai"
-  | "mistral"
-  | "deepseek";
+  "anthropic" | "openai" | "openrouter" | "google" | "groq" | "xai" | "mistral" | "deepseek";
 
 /** Any provider ID (builtins + custom) */
 export type ProviderId = BuiltinProviderId | (string & {});
@@ -81,7 +74,7 @@ export interface ProviderConfig {
   headers?: Record<string, string>;
 }
 
-/** Full byok-ai config file shape */
+/** Full byok-llm config file shape */
 export interface ByokConfig {
   providers?: Record<string, ProviderConfig>;
   defaultProvider?: ProviderId;
@@ -130,6 +123,6 @@ export interface ByokOptions {
   providers?: Record<string, ProviderConfig>;
   /** Path to project config file */
   configPath?: string;
-  /** Disable user config loading */
+  /** Do not read the user config file (stored keys are still used) */
   noUserConfig?: boolean;
 }
