@@ -1,15 +1,16 @@
 // ============================================================
 // byok-llm — Basic Usage Examples
 // ============================================================
-// Run: npx tsx examples/basic-usage.ts
+// Run from the repository root: npx tsx examples/basic-usage.ts
+//
+// Only the status example runs by default (see the bottom of the file).
+// The others are here to read; examples 1 and 6 make network requests.
 
 import {
   init,
   resolveKey,
   resolveWithFallback,
   getOpenAICompatibleConfig,
-  getProviderHeaders,
-  getProviderBaseUrl,
   printStatus,
   setupWizard,
   validateKey,
@@ -17,23 +18,23 @@ import {
 } from "../src/index.js";
 
 // ─────────────────────────────────────────────
-// Example 1: Simplest possible usage
+// Example 1: Find a key (or ask for one) and call the provider with fetch
 // ─────────────────────────────────────────────
-async function example1_simple() {
-  // One-liner: find a provider, run wizard if needed
+export async function example1_simple() {
+  // Returns the provider if it has a key; otherwise runs the wizard when attached to a terminal.
   const provider = await init({
-    providers: ["anthropic", "openai", "openrouter"],
+    providers: ["anthropic"],
     appName: "my-cool-cli",
   });
 
   if (!provider) {
-    console.log("No AI provider configured. Exiting.");
+    console.log("No Anthropic API key configured. Exiting.");
     return;
   }
 
   console.log(`Using ${provider.providerId} (key from: ${provider.source})`);
 
-  // Use with fetch directly
+  // provider.baseUrl is the API root; the path and body are Anthropic's Messages API.
   const response = await fetch(`${provider.baseUrl}/v1/messages`, {
     method: "POST",
     headers: {
@@ -41,80 +42,80 @@ async function example1_simple() {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 100,
+      model: "claude-opus-5-5",
+      max_tokens: 1024,
       messages: [{ role: "user", content: "Hello!" }],
     }),
   });
+
+  console.log("Status:", response.status);
 }
 
 // ─────────────────────────────────────────────
-// Example 2: Use with OpenAI SDK (works for OpenRouter, Groq, xAI, etc.)
+// Example 2: Use with the OpenAI SDK (OpenAI, OpenRouter, Groq, xAI, Mistral, DeepSeek)
 // ─────────────────────────────────────────────
-async function example2_openai_sdk() {
-  // import OpenAI from 'openai';
+export async function example2_openai_sdk() {
+  // import OpenAI from "openai";
   const config = await getOpenAICompatibleConfig("openrouter");
-  // const client = new OpenAI(config);  // That's it!
+  // const client = new OpenAI(config);
   console.log("OpenAI-compatible config:", {
-    baseURL: config.baseURL,
-    apiKey: config.apiKey.slice(0, 8) + "...",
+    baseURL: config.baseURL, // https://openrouter.ai/api/v1
+    apiKey: config.apiKey.slice(0, 6) + "...",
   });
 }
 
 // ─────────────────────────────────────────────
-// Example 3: Fallback across providers
+// Example 3: First provider in a list that has a key
 // ─────────────────────────────────────────────
-async function example3_fallback() {
-  // Try Anthropic first, then OpenAI, then OpenRouter
-  const provider = await resolveWithFallback(["anthropic", "openai", "openrouter"]);
+export async function example3_fallback() {
+  const order = ["anthropic", "openai", "openrouter"];
+  const provider = await resolveWithFallback(order);
 
   if (provider) {
-    console.log(`Best available provider: ${provider.providerId}`);
+    console.log(`First configured provider: ${provider.providerId}`);
   } else {
-    console.log("No provider available! Run the setup wizard.");
-    await setupWizard({
-      providers: ["anthropic", "openai", "openrouter"],
-      appName: "my-app",
-    });
+    console.log("No provider configured. Starting the setup wizard.");
+    await setupWizard({ providers: order, appName: "my-app" });
   }
 }
 
 // ─────────────────────────────────────────────
 // Example 4: Register a custom provider
 // ─────────────────────────────────────────────
-async function example4_custom_provider() {
-  // Register a self-hosted or custom provider
+export async function example4_custom_provider() {
   registerProvider({
-    id: "my-ollama",
-    name: "Local Ollama",
-    envKeys: ["OLLAMA_API_KEY"],
-    baseUrl: "http://localhost:11434",
-    docsUrl: "https://ollama.ai",
+    id: "local-llm",
+    name: "Local server",
+    envKeys: ["LOCAL_LLM_API_KEY"],
+    baseUrl: "http://localhost:8080",
+    docsUrl: "https://example.com/how-to-get-a-key",
     authStyle: "bearer",
     openaiCompatible: true,
   });
 
-  // Now it works like any built-in provider
-  const key = await resolveKey("my-ollama");
-  console.log("Ollama key:", key);
+  // It now resolves like any built-in provider.
+  const resolved = await resolveKey("local-llm");
+  console.log("Local key configured:", resolved !== null);
 }
 
 // ─────────────────────────────────────────────
-// Example 5: Show status of all providers
+// Example 5: Show which providers are configured
 // ─────────────────────────────────────────────
-async function example5_status() {
+export async function example5_status() {
   await printStatus();
 }
 
 // ─────────────────────────────────────────────
-// Example 6: Validate a key before using it
+// Example 6: Validate a key before storing or using it
 // ─────────────────────────────────────────────
-async function example6_validate() {
-  const result = await validateKey("openai", "sk-test-key-here");
-  if (result.valid) {
-    console.log("Key is valid!", result.meta);
+export async function example6_validate() {
+  const result = await validateKey("openai", "sk-your-key-here");
+  if (!result.valid) {
+    console.log("Key rejected:", result.error);
+  } else if (result.meta?.warning) {
+    console.log("Key not verified:", result.meta.warning);
   } else {
-    console.log("Key is invalid:", result.error);
+    console.log("Key is valid.");
   }
 }
 
