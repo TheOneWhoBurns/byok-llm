@@ -99,7 +99,9 @@ import { setupWizard } from "./ui/setup-wizard.js";
  * ```
  */
 export async function init(
-  options: ByokOptions & {
+  // ByokOptions["providers"] is the per-provider config record. Here the name
+  // means the list of ids to try, so the two must not be intersected.
+  options: Omit<ByokOptions, "providers"> & {
     /** Providers to check (in fallback order) */
     providers?: ProviderId[];
     /** App name for wizard prompts */
