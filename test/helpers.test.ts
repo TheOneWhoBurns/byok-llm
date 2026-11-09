@@ -98,6 +98,50 @@ describe("Auth & URL Helpers", () => {
 
       expect(url).toBe("https://my-proxy.com/v1/models");
     });
+
+    // Regression: `new URL("/v1/models", "https://api.groq.com/openai")` drops "/openai".
+    it("should keep the path prefix of the base URL", () => {
+      expect(buildUrl(getProvider("groq")!, "/v1/models")).toBe(
+        "https://api.groq.com/openai/v1/models",
+      );
+      expect(buildUrl(getProvider("openrouter")!, "/v1/auth/key")).toBe(
+        "https://openrouter.ai/api/v1/auth/key",
+      );
+    });
+
+    it("should keep the path prefix of a custom baseUrl from config", () => {
+      const provider = getProvider("openai")!;
+      const url = buildUrl(provider, "/v1/models", "sk-test", {
+        baseUrl: "https://my-proxy.com/openai/",
+      });
+
+      expect(url).toBe("https://my-proxy.com/openai/v1/models");
+    });
+
+    it("should build the documented validation URL for every built-in provider", () => {
+      const expected: Record<string, string> = {
+        anthropic: "https://api.anthropic.com/v1/models",
+        openai: "https://api.openai.com/v1/models",
+        openrouter: "https://openrouter.ai/api/v1/auth/key",
+        google: "https://generativelanguage.googleapis.com/v1beta/models",
+        groq: "https://api.groq.com/openai/v1/models",
+        xai: "https://api.x.ai/v1/models",
+        mistral: "https://api.mistral.ai/v1/models",
+        deepseek: "https://api.deepseek.com/models",
+      };
+
+      for (const [id, url] of Object.entries(expected)) {
+        const provider = getProvider(id)!;
+        expect(buildUrl(provider, provider.validateEndpoint!)).toBe(url);
+      }
+    });
+
+    it("should use an absolute endpoint URL as-is", () => {
+      const provider = getProvider("openai")!;
+      const url = buildUrl(provider, "https://status.example.com/v2/check");
+
+      expect(url).toBe("https://status.example.com/v2/check");
+    });
   });
 
   describe("getProviderBaseUrl", () => {

@@ -139,7 +139,12 @@ export function buildUrl(
   providerConfig?: ProviderConfig,
 ): string {
   const base = providerConfig?.baseUrl || provider.baseUrl;
-  const url = new URL(endpoint, base);
+
+  // Join the paths by hand: `new URL("/v1/models", base)` would discard any path
+  // the base URL carries (e.g. "/openai" for Groq, "/api" for OpenRouter).
+  const url = /^[a-z][a-z0-9+.-]*:\/\//i.test(endpoint)
+    ? new URL(endpoint)
+    : new URL(`${base.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`);
 
   if (provider.authStyle === "query-param" && key) {
     url.searchParams.set("key", key);
