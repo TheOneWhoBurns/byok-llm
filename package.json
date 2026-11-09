@@ -27,11 +27,12 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src/ test/ && tsc --noEmit",
+    "lint": "eslint src/ test/",
     "lint:fix": "eslint src/ test/ --fix",
+    "typecheck": "tsc -p tsconfig.eslint.json",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
-    "prepublishOnly": "npm run lint && npm run test && npm run build"
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "keywords": [
     "byok",
@@ -48,6 +49,15 @@
     "groq"
   ],
   "license": "MIT",
+  "author": "Andres Sol Martinez",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheOneWhoBurns/byok-llm.git"
+  },
+  "homepage": "https://github.com/TheOneWhoBurns/byok-llm#readme",
+  "bugs": {
+    "url": "https://github.com/TheOneWhoBurns/byok-llm/issues"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.5.0",
