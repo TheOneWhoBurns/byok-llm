@@ -100,4 +100,89 @@ describe("validateKey (live check, fetch stubbed)", () => {
     expect(result.valid).toBe(true);
     expect(result.meta?.warning).toContain("Could not reach provider");
   });
+
+  it.each(["ENOTFOUND", "ECONNREFUSED"])(
+    "should treat fetch failures caused by %s as unverified",
+    async (code) => {
+      stubFetch(
+        new TypeError("fetch failed", {
+          cause: Object.assign(new Error(`getaddrinfo ${code} api.example.com`), { code }),
+        }),
+      );
+
+      const result = await validateKey("openai", "sk-network-key-123456789");
+
+      expect(result).toEqual({
+        valid: true,
+        meta: { warning: "Could not reach provider API to validate (network issue)" },
+      });
+    },
+  );
+
+  it("should report unrelated errors as validation failures", async () => {
+    stubFetch(new Error("boom"));
+
+    const result = await validateKey("openai", "sk-network-key-123456789");
+
+    expect(result).toEqual({ valid: false, error: "Validation error: boom" });
+  });
+
+  it.each(["TimeoutError", "AbortError"])("should recognize %s by name", async (name) => {
+    stubFetch(new DOMException("Operation interrupted", name));
+
+    const result = await validateKey("openai", "sk-network-key-123456789");
+
+    expect(result.valid).toBe(true);
+    expect(result.meta?.warning).toContain("Could not reach provider");
+  });
+
+  it.each([
+    "ENOTFOUND",
+    "EAI_AGAIN",
+    "ECONNREFUSED",
+    "ECONNRESET",
+    "ETIMEDOUT",
+    "EHOSTUNREACH",
+    "ENETUNREACH",
+    "UND_ERR_CONNECT_TIMEOUT",
+    "UND_ERR_SOCKET",
+  ])("should recognize %s inside an aggregate cause", async (code) => {
+    stubFetch(
+      new TypeError("fetch failed", {
+        cause: new AggregateError([Object.assign(new Error("Connection failed"), { code })]),
+      }),
+    );
+
+    const result = await validateKey("openai", "sk-network-key-123456789");
+
+    expect(result.valid).toBe(true);
+    expect(result.meta?.warning).toContain("Could not reach provider");
+  });
+
+  it("should recognize a nested cause", async () => {
+    stubFetch(
+      new TypeError("fetch failed", {
+        cause: new Error("Connection failed", {
+          cause: Object.assign(new Error("Socket closed"), { code: "ECONNRESET" }),
+        }),
+      }),
+    );
+
+    const result = await validateKey("openai", "sk-network-key-123456789");
+
+    expect(result.valid).toBe(true);
+    expect(result.meta?.warning).toContain("Could not reach provider");
+  });
+
+  it("should reject unrecognized cause codes", async () => {
+    stubFetch(
+      new TypeError("fetch failed", {
+        cause: Object.assign(new Error("Invalid argument"), { code: "ERR_INVALID_ARG_TYPE" }),
+      }),
+    );
+
+    const result = await validateKey("openai", "sk-network-key-123456789");
+
+    expect(result).toEqual({ valid: false, error: "Validation error: fetch failed" });
+  });
 });
