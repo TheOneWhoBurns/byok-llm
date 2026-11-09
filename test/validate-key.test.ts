@@ -42,7 +42,7 @@ describe("validateKey (live check, fetch stubbed)", () => {
 
     const result = await validateKey("openrouter", "sk-or-valid-looking-key-1234");
 
-    expect(String(fetchMock.mock.calls[0][0])).toBe("https://openrouter.ai/api/v1/auth/key");
+    expect(String(fetchMock.mock.calls[0][0])).toBe("https://openrouter.ai/api/v1/key");
     expect(result).toEqual({ valid: true, meta: { label: "my-key", usage: 1.5, limit: 10 } });
   });
 

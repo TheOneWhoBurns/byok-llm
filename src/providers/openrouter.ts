@@ -8,6 +8,6 @@ export const openrouter: ProviderDefinition = {
   baseUrl: "https://openrouter.ai/api",
   docsUrl: "https://openrouter.ai/keys",
   authStyle: "bearer",
-  validateEndpoint: "/v1/auth/key",
+  validateEndpoint: "/v1/key",
   openaiCompatible: true,
 };

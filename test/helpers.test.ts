@@ -125,8 +125,8 @@ describe("Auth & URL Helpers", () => {
       expect(buildUrl(getProvider("groq")!, "/v1/models")).toBe(
         "https://api.groq.com/openai/v1/models",
       );
-      expect(buildUrl(getProvider("openrouter")!, "/v1/auth/key")).toBe(
-        "https://openrouter.ai/api/v1/auth/key",
+      expect(buildUrl(getProvider("openrouter")!, "/v1/key")).toBe(
+        "https://openrouter.ai/api/v1/key",
       );
     });
 
@@ -143,7 +143,7 @@ describe("Auth & URL Helpers", () => {
       const expected: Record<string, string> = {
         anthropic: "https://api.anthropic.com/v1/models",
         openai: "https://api.openai.com/v1/models",
-        openrouter: "https://openrouter.ai/api/v1/auth/key",
+        openrouter: "https://openrouter.ai/api/v1/key",
         google: "https://generativelanguage.googleapis.com/v1beta/models",
         groq: "https://api.groq.com/openai/v1/models",
         xai: "https://api.x.ai/v1/models",
