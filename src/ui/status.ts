@@ -57,7 +57,7 @@ export async function printStatus(providerIds?: ProviderId[]): Promise<void> {
   const status = await getStatus(providerIds);
 
   console.log();
-  console.log(`${col.bold}${col.cyan}  byok-ai${col.reset} — Provider Status`);
+  console.log(`${col.bold}${col.cyan}  byok-llm${col.reset} — Provider Status`);
   console.log(`${col.dim}  ${"─".repeat(50)}${col.reset}`);
 
   for (const p of status.providers) {

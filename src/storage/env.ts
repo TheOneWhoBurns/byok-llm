@@ -47,7 +47,7 @@ export function generateEnvTemplate(providerIds?: ProviderId[]): string {
     : listProviders();
 
   const lines: string[] = [
-    "# byok-ai — API Keys",
+    "# byok-llm — API Keys",
     "# Add your API keys below. You only need keys for providers you want to use.",
     "",
   ];

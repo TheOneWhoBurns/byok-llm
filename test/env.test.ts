@@ -106,7 +106,7 @@ describe("Environment Variable Helpers", () => {
 
     it("should include header comment", () => {
       const template = generateEnvTemplate();
-      expect(template).toContain("byok-ai");
+      expect(template).toContain("byok-llm");
       expect(template).toContain("API Keys");
     });
   });

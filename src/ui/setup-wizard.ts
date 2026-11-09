@@ -53,7 +53,7 @@ export async function setupWizard(options: WizardOptions = {}): Promise<void> {
 
   try {
     console.log();
-    console.log(`${c.bold}${c.cyan}  byok-ai${c.reset} — API Key Setup`);
+    console.log(`${c.bold}${c.cyan}  byok-llm${c.reset} — API Key Setup`);
     console.log(`${c.dim}  ${appName} needs an AI provider to work.${c.reset}`);
     console.log(`${c.dim}  You only need to configure one provider.${c.reset}`);
     console.log();
