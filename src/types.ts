@@ -4,14 +4,7 @@
 
 /** Supported built-in provider IDs */
 export type BuiltinProviderId =
-  | "anthropic"
-  | "openai"
-  | "openrouter"
-  | "google"
-  | "groq"
-  | "xai"
-  | "mistral"
-  | "deepseek";
+  "anthropic" | "openai" | "openrouter" | "google" | "groq" | "xai" | "mistral" | "deepseek";
 
 /** Any provider ID (builtins + custom) */
 export type ProviderId = BuiltinProviderId | (string & {});
